@@ -47,4 +47,8 @@ public class PlayerController : MonoBehaviour
         _isGrounded = true;
         _jump = 0;
     }
+    private void OnCollisionExit(Collision collision)
+    {
+        _isGrounded = false;
+    }
 }
