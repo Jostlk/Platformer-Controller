@@ -5,20 +5,53 @@ using UnityEngine.Experimental.GlobalIllumination;
 
 public class PlayerController : MonoBehaviour
 {
-    public Rigidbody rb;
     public float Speed = 5;
     public float RunSpeed = 8;
-    private float _currentSpeed;
     public float JumpForce = 3;
-    private bool _maxJump = false;
+    [SerializeField] private float _gravity = -9.81f;
+
+    public Rigidbody rb;
+
+    private float _currentSpeed;
     private float _jump = 0;
-    private float _gravity = -9.81f;
+    private bool _maxJump = false;
     private bool _isGrounded = true;
+    private LayerMask _layerGround;
+
     private void Start()
     {
-        _currentSpeed = Speed;
+        SetOnStart();
     }
+
     private void Update()
+    {
+        Jump();
+        Sprint();
+        Fall();
+    }
+
+    private void FixedUpdate()
+    {
+        Movement();
+    }
+
+    public void OnCollisionEnter(Collision collision)
+    {
+        OnGround(collision);
+    }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        OnOutGround(collision);
+    }
+
+    private void Movement()
+    {
+        var horizontale = Input.GetAxis("Horizontal");
+        rb.velocity = new Vector3(0, _jump, horizontale * _currentSpeed);
+    }
+
+    private void Jump()
     {
         if (Input.GetKey(KeyCode.Space) && !_maxJump)
         {
@@ -40,6 +73,10 @@ public class PlayerController : MonoBehaviour
                 _jump -= Time.deltaTime;
             }
         }
+    }
+
+    private void Sprint()
+    {
         if (Input.GetKeyDown(KeyCode.LeftShift) && _isGrounded)
         {
             _currentSpeed = RunSpeed;
@@ -48,25 +85,46 @@ public class PlayerController : MonoBehaviour
         {
             _currentSpeed = Speed;
         }
+    }
+
+    private void Fall()
+    {
         if (!_isGrounded)
         {
             _jump += _gravity * Time.deltaTime;
         }
     }
-    private void FixedUpdate()
+
+    private void OnGround(Collision collision)
     {
-        var horizontale = Input.GetAxis("Horizontal");
-        rb.velocity = new Vector3(0, _jump, horizontale * _currentSpeed);
+        if (collision.gameObject.layer == _layerGround)
+        {
+            _isGrounded = true;
+            _maxJump = false;
+            _jump = 0;
+        }
+        else
+        {
+            _maxJump = true;
+            while (_jump > 0)
+            {
+                _jump -= Time.deltaTime;
+            };
+        }
     }
-    public void OnCollisionEnter(Collision collision)
+
+    private void OnOutGround(Collision collision)
     {
-        _isGrounded = true;
-        _maxJump = false;
-        _jump = 0;
+        if (collision.gameObject.layer == _layerGround)
+        {
+            _maxJump = false;
+            _isGrounded = false;
+        }
     }
-    private void OnCollisionExit(Collision collision)
+    private void SetOnStart()
     {
-        _maxJump = false;
-        _isGrounded = false;
+        _currentSpeed = Speed;
+        _layerGround = LayerMask.NameToLayer("Ground");
     }
 }
+
