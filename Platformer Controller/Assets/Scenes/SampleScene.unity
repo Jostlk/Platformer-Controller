@@ -224,7 +224,7 @@ MonoBehaviour:
   rb: {fileID: 519357142}
   Speed: 5
   RunSpeed: 8
-  JumpForce: 3
+  JumpForce: 6
 --- !u!54 &519357142
 Rigidbody:
   m_ObjectHideFlags: 0
