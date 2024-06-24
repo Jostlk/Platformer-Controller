@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
     private float _jump = 0;
     private bool _maxJump = false;
     private bool _isGrounded = true;
+    private bool _isDoubleJumped = false;
     private LayerMask _layerGround;
 
     private void Start()
@@ -26,6 +27,7 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         Jump();
+        DoubleJump();
         Sprint();
         Fall();
     }
@@ -75,6 +77,20 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void DoubleJump()
+    {
+        if (!_isGrounded && !_isDoubleJumped && _maxJump)
+        {
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                _maxJump = false;
+                _jump = JumpForce;
+                _isDoubleJumped = true;
+            }
+        }
+    }
+    
+
     private void Sprint()
     {
         if (Input.GetKeyDown(KeyCode.LeftShift) && _isGrounded)
@@ -102,6 +118,7 @@ public class PlayerController : MonoBehaviour
             _isGrounded = true;
             _maxJump = false;
             _jump = 0;
+            _isDoubleJumped = false;
         }
         else
         {
