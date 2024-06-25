@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Experimental.GlobalIllumination;
+﻿using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
@@ -17,7 +14,6 @@ public class PlayerController : MonoBehaviour
     private bool _maxJump = false;
     private bool _isGrounded = true;
     private bool _isDoubleJumped = false;
-    private LayerMask _layerGround;
 
     private void Start()
     {
@@ -36,15 +32,13 @@ public class PlayerController : MonoBehaviour
     {
         Movement();
     }
-
-    public void OnCollisionEnter(Collision collision)
+    private void OnCollisionEnter(Collision collision)
     {
-        OnGround(collision);
+        OnGround();
     }
-
     private void OnCollisionExit(Collision collision)
     {
-        OnOutGround(collision);
+        OnOutGround();
     }
 
     private void Movement()
@@ -89,7 +83,6 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-    
 
     private void Sprint()
     {
@@ -110,38 +103,24 @@ public class PlayerController : MonoBehaviour
             _jump += _gravity * Time.deltaTime;
         }
     }
-
-    private void OnGround(Collision collision)
+    private void OnGround()
     {
-        if (collision.gameObject.layer == _layerGround)
+        if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out RaycastHit hit, 1))
         {
             _isGrounded = true;
             _maxJump = false;
             _jump = 0;
             _isDoubleJumped = false;
         }
-        else
-        {
-            _maxJump = true;
-            while (_jump > 0)
-            {
-                _jump -= Time.deltaTime;
-            };
-        }
+    }
+    private void OnOutGround()
+    {
+        _maxJump = false;
+        _isGrounded = false;
     }
 
-    private void OnOutGround(Collision collision)
-    {
-        if (collision.gameObject.layer == _layerGround)
-        {
-            _maxJump = false;
-            _isGrounded = false;
-        }
-    }
     private void SetOnStart()
     {
         _currentSpeed = Speed;
-        _layerGround = LayerMask.NameToLayer("Ground");
     }
 }
-
