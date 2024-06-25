@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
     public float JumpForce = 3;
     [SerializeField] private float _gravity = -9.81f;
     [SerializeField] private float _jumpBufferingDistance = 1.5f;
+    public float _coyoteTimeCounter;
 
     public Rigidbody rb;
 
@@ -14,7 +15,8 @@ public class PlayerController : MonoBehaviour
     private float _jump = 0;
     private bool _maxJump = false;
     private bool _isGrounded = true;
-    private bool _isDoubleJumped = false;
+    public bool _isDoubleJumped = false;
+    private bool _secondJump = false;
 
     private void Start()
     {
@@ -59,12 +61,15 @@ public class PlayerController : MonoBehaviour
             }
             _jump -= Time.deltaTime;
         }
-        if (Input.GetKeyDown(KeyCode.Space) && _isGrounded)
+        if (Input.GetKeyDown(KeyCode.Space) && _coyoteTimeCounter > 0)
         {
             _jump = JumpForce;
+            _isDoubleJumped = true;
+            _secondJump = true;
         }
         else if (Input.GetKeyUp(KeyCode.Space))
         {
+            _isDoubleJumped = false;
             _maxJump = true;
             while (_jump > 0)
             {
@@ -75,10 +80,11 @@ public class PlayerController : MonoBehaviour
 
     private void DoubleJump()
     {
-        if (!_isGrounded && !_isDoubleJumped && _maxJump)
+        if (!_isGrounded && !_isDoubleJumped && _secondJump)
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
+                _secondJump = false;
                 _maxJump = false;
                 _jump = JumpForce;
                 _isDoubleJumped = true;
@@ -103,6 +109,11 @@ public class PlayerController : MonoBehaviour
         if (!_isGrounded)
         {
             _jump -= _gravity * Time.deltaTime;
+            _coyoteTimeCounter -= Time.deltaTime;
+        }
+        else
+        {
+            _coyoteTimeCounter = 0.2f;
         }
 
         if (_maxJump)
