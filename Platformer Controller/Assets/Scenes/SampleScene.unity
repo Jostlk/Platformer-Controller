@@ -151,8 +151,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 1, y: 1.2782989, z: 1}
+  m_Center: {x: 0, y: -0.13914943, z: -0}
 --- !u!23 &458901274
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -248,7 +248,8 @@ MonoBehaviour:
   Speed: 5
   RunSpeed: 8
   JumpForce: 9
-  _gravity: -9.81
+  _gravity: 9.81
+  _jumpBufferingDistance: 0.8
   rb: {fileID: 519357142}
 --- !u!54 &519357142
 Rigidbody:
@@ -602,7 +603,7 @@ GameObject:
   - component: {fileID: 1444286775}
   - component: {fileID: 1444286774}
   - component: {fileID: 1444286773}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -695,7 +696,7 @@ GameObject:
   - component: {fileID: 1804282298}
   - component: {fileID: 1804282297}
   - component: {fileID: 1804282296}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Cube (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -713,8 +714,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 1, y: 1, z: 0.99748313}
+  m_Center: {x: 0, y: 0, z: 0.0012585958}
 --- !u!23 &1804282297
 MeshRenderer:
   m_ObjectHideFlags: 0
