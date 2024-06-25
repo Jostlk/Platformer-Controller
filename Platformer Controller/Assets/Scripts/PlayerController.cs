@@ -6,7 +6,7 @@ public class PlayerController : MonoBehaviour
     public float RunSpeed = 8;
     public float JumpForce = 3;
     [SerializeField] private float _gravity = -9.81f;
-    [SerializeField] private float _jumpBufferingDistance;
+    [SerializeField] private float _jumpBufferingDistance = 1.5f;
 
     public Rigidbody rb;
 
@@ -15,7 +15,6 @@ public class PlayerController : MonoBehaviour
     private bool _maxJump = false;
     private bool _isGrounded = true;
     private bool _isDoubleJumped = false;
-    private LayerMask _layerGround;
 
     private void Start()
     {
@@ -24,8 +23,9 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        JumpBuffering();
         Jump();
-        //DoubleJump();
+        DoubleJump();
         Sprint();
         Fall();
     }
@@ -36,11 +36,11 @@ public class PlayerController : MonoBehaviour
     }
     private void OnCollisionEnter(Collision collision)
     {
-        OnGround(collision);
+        OnGround();
     }
     private void OnCollisionExit(Collision collision)
     {
-        OnOutGround(collision);
+        OnOutGround();
     }
 
     private void Movement()
@@ -113,68 +113,40 @@ public class PlayerController : MonoBehaviour
         {
             _gravity = 9.81f;
         }
-        JumpBuffering();
     }
-    private void OnGround(Collision collision)
+    private void JumpBuffering()
     {
-        // if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out RaycastHit hit, 1))
-        if (collision.gameObject.layer == _layerGround)
+        if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out RaycastHit hit, _jumpBufferingDistance))
         {
-            _isGrounded = true;
             _maxJump = false;
-            _jump = 0;
             _isDoubleJumped = false;
             _gravity = 9.81f;
         }
-        else
-        {
-            _maxJump = true;
-            while (_jump > 0)
-            {
-                _jump -= Time.deltaTime;
-            }
-        }
     }
-    private void OnOutGround(Collision collision)
+
+    private void OnGround()
     {
-        if (collision.gameObject.layer == _layerGround)
+        if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out RaycastHit hit, 1))
         {
-            _maxJump = false;
-            _isGrounded = false;
+            _isGrounded = true;
+            _jump = 0;
         }
     }
 
-   private void JumpBuffering()
+    private void OnOutGround()
     {
-        if (Physics.Raycast(transform.position, -transform.up, out RaycastHit hit))
-        {
-            if (hit.collider.gameObject.layer == _layerGround)
-            {
-                if (hit.distance <= _jumpBufferingDistance)
-                {
-                    Debug.Log(1);
-                    _isGrounded = true;
-                    _maxJump = false;
-                    _isDoubleJumped = false;
-                }
-            }
-            if (hit.distance > _jumpBufferingDistance)
-            {
-                Debug.Log(2);
-                _isGrounded = false;
-            }
-            else
-            {
-
-            }
-
-        }
+        _maxJump = false;
+        _isGrounded = false;
     }
-    
-    
+
     private void SetOnStart()
     {
         _currentSpeed = Speed;
-        _layerGround = LayerMask.NameToLayer("Ground");
+        _isGrounded = false;
+        _isDoubleJumped = true;
+        if (_jumpBufferingDistance < 1)
+        {
+            _jumpBufferingDistance = 1;
+        }
     }
 }
