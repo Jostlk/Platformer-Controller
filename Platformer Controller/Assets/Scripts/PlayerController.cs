@@ -7,7 +7,6 @@ public class PlayerController : MonoBehaviour
     public float JumpForce = 3;
     [SerializeField] private float _gravity = -9.81f;
     [SerializeField] private float _jumpBufferingDistance = 1.5f;
-    public float _coyoteTimeCounter;
 
     public Rigidbody rb;
 
@@ -15,8 +14,9 @@ public class PlayerController : MonoBehaviour
     private float _jump = 0;
     private bool _maxJump = false;
     private bool _isGrounded = true;
-    public bool _isDoubleJumped = false;
+    private bool _isDoubleJumped = false;
     private bool _secondJump = false;
+    private float _coyoteTimeCounter;
 
     private void Start()
     {
