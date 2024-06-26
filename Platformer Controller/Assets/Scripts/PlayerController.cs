@@ -142,8 +142,9 @@ public class PlayerController : MonoBehaviour
         if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out RaycastHit hit, 1))
         {
             _isGrounded = true;
-            _jump = 0;
         }
+        _jump = 0;
+        _maxJump = true;
     }
 
     private void OnOutGround()
