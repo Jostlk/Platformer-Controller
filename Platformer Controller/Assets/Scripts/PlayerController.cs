@@ -63,11 +63,12 @@ public class PlayerController : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.Space) && _coyoteTimeCounter > 0)
         {
+            _isGrounded = false;
             _jump = JumpForce;
             _isDoubleJumped = true;
             _secondJump = true;
         }
-        else if (Input.GetKeyUp(KeyCode.Space))
+        else if (Input.GetKeyUp(KeyCode.Space) && !_isGrounded)
         {
             _isDoubleJumped = false;
             _maxJump = true;
@@ -113,6 +114,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
+            _jump = 0;
             _coyoteTimeCounter = 0.2f;
         }
 
