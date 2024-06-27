@@ -2,21 +2,27 @@
 
 public class PlayerController : MonoBehaviour
 {
-    public float Speed = 5;
-    public float RunSpeed = 8;
-    public float JumpForce = 3;
-    [SerializeField] private float _gravity = -9.81f;
-    [SerializeField] private float _jumpBufferingDistance = 1.5f;
+    public float Speed;
+    public float RunSpeed;
+    public float JumpForce;
+    public float dashKD;
+    public float dashForseXThousand;
+    public bool isDashed;
+    public bool isDoubleJumped;
+    [SerializeField] private float _gravity;
+    [SerializeField] private float _jumpBufferingDistance;
+    [SerializeField] private float _fallGravity;
 
     public Rigidbody rb;
 
-    private float _currentSpeed;
-    private float _jump = 0;
-    private bool _maxJump = false;
-    private bool _isGrounded = true;
-    private bool _isDoubleJumped = false;
-    private bool _secondJump = false;
+    private bool _maxJump;
+    private bool _isGrounded;
     private float _coyoteTimeCounter;
+    private float _horizontale;
+    private float _currentSpeed;
+    private float _jump;
+    private float _dashKDTime;
+    private LayerMask _layerGround;
 
     private void Start()
     {
@@ -25,30 +31,32 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        JumpBuffering();
         Jump();
         DoubleJump();
         Sprint();
         Fall();
+        Dash();
+        DashKD();
     }
 
     private void FixedUpdate()
     {
+        JumpBuffering();
         Movement();
     }
     private void OnCollisionEnter(Collision collision)
     {
-        OnGround();
+        OnGround(collision);
     }
     private void OnCollisionExit(Collision collision)
     {
-        OnOutGround();
+        OnOutGround(collision);
     }
 
     private void Movement()
     {
-        var horizontale = Input.GetAxis("Horizontal");
-        rb.velocity = new Vector3(0, _jump, horizontale * _currentSpeed);
+        _horizontale = Input.GetAxis("Horizontal");
+        rb.velocity = new Vector3(0, _jump, _horizontale * _currentSpeed);
     }
 
     private void Jump()
@@ -65,12 +73,11 @@ public class PlayerController : MonoBehaviour
         {
             _isGrounded = false;
             _jump = JumpForce;
-            _isDoubleJumped = true;
-            _secondJump = true;
+            isDoubleJumped = true;
+
         }
         else if (Input.GetKeyUp(KeyCode.Space) && !_isGrounded)
         {
-            _isDoubleJumped = false;
             _maxJump = true;
             while (_jump > 0)
             {
@@ -81,14 +88,13 @@ public class PlayerController : MonoBehaviour
 
     private void DoubleJump()
     {
-        if (!_isGrounded && !_isDoubleJumped && _secondJump)
+        if (!_isGrounded && !isDoubleJumped)
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                _secondJump = false;
                 _maxJump = false;
                 _jump = JumpForce;
-                _isDoubleJumped = true;
+                isDoubleJumped = true;
             }
         }
     }
@@ -120,7 +126,7 @@ public class PlayerController : MonoBehaviour
 
         if (_maxJump)
         {
-            _gravity = 14;
+            _gravity = _fallGravity;
         }
         else
         {
@@ -129,38 +135,88 @@ public class PlayerController : MonoBehaviour
     }
     private void JumpBuffering()
     {
-        if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out RaycastHit hit, _jumpBufferingDistance))
+        if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit))
         {
-            _maxJump = false;
-            _isDoubleJumped = false;
-            _gravity = 9.81f;
+            if (hit.distance < _jumpBufferingDistance && !_isGrounded)
+            {
+                _coyoteTimeCounter = 0.2f;
+                _maxJump = false;
+                isDoubleJumped = false;
+                _gravity = 9.81f;
+            }
         }
     }
 
-    private void OnGround()
+    private void OnGround(Collision collision)
     {
-        if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out RaycastHit hit, 1))
+        if (collision.gameObject.layer == _layerGround)
         {
             _isGrounded = true;
         }
         _jump = 0;
         _maxJump = true;
+        Sliding();
     }
 
-    private void OnOutGround()
+    private void OnOutGround(Collision collision)
     {
-        _maxJump = false;
-        _isGrounded = false;
+        if (collision.gameObject.layer == _layerGround)
+        {
+            _maxJump = false;
+            _isGrounded = false;
+            _dashKDTime = 0;
+            isDashed = false;
+        }
     }
+
+    private void Dash()
+    {
+        if (Input.GetKeyDown(KeyCode.LeftControl) && !isDashed)
+        {
+            _horizontale = Input.GetAxis("Horizontal");
+
+            if (_horizontale > 0)
+            {
+                rb.AddForce(Vector3.forward * dashForseXThousand * 1000);
+            }
+            else
+            {
+                rb.AddForce(Vector3.back * dashForseXThousand * 1000);
+            }
+            isDashed = true;
+            if (_isGrounded)
+            {
+                _dashKDTime = dashKD;
+            }
+        }
+    }
+    private void DashKD()
+    {
+        if (_isGrounded && isDashed)
+        {
+            _dashKDTime -= Time.deltaTime;
+            if (_dashKDTime <= 0)
+            {
+                isDashed = false;
+            }
+        }
+    }
+
+    private void Sliding()
+    {
+        if (Physics.Raycast(transform.up * 2, -transform.forward, out RaycastHit hit) || Physics.Raycast(transform.up * 2, transform.forward, out RaycastHit hit1))
+        {
+            isDoubleJumped = false;
+            isDashed = false;
+        }
+    }
+
 
     private void SetOnStart()
     {
         _currentSpeed = Speed;
         _isGrounded = false;
-        _isDoubleJumped = true;
-        if (_jumpBufferingDistance < 1)
-        {
-            _jumpBufferingDistance = 1;
-        }
+        isDoubleJumped = true;
+        _layerGround = LayerMask.NameToLayer("Ground");
     }
 }
