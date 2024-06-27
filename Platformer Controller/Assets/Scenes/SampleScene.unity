@@ -257,6 +257,7 @@ MonoBehaviour:
   _jumpBufferingDistance: 0.8
   _fallGravity: 15
   rb: {fileID: 519357142}
+  animator: {fileID: 919132149194719677}
 --- !u!54 &519357142
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -298,10 +299,10 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  m_Radius: 0.29998147
+  m_Radius: 0.5880659
   m_Height: 3.7715774
   m_Direction: 1
-  m_Center: {x: 0, y: 1.8921936, z: -0.0004492402}
+  m_Center: {x: 0, y: 1.8921936, z: 0.059020102}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -949,6 +950,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 543450653667941126}
+  - component: {fileID: 919132149194719677}
   m_Layer: 0
   m_Name: Remy
   m_TagString: Untagged
@@ -956,6 +958,25 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!95 &919132149194719677
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919132149194719676}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 5d269d86fef983547bd1e0f836f990c4, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!4 &1031632034308759899
 Transform:
   m_ObjectHideFlags: 0
