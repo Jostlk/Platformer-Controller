@@ -7,7 +7,8 @@ public class PlayerController : MonoBehaviour
     public float JumpForce;
     public float dashKD;
     public float dashForseXThousand;
-    public bool isDashed;
+    public float slidindSpeed;
+    [HideInInspector] public bool isDashed;
     [HideInInspector] public bool isDoubleJumped;
     [SerializeField] private float _gravity;
     [SerializeField] private float _jumpBufferingDistance;
@@ -20,12 +21,14 @@ public class PlayerController : MonoBehaviour
     private bool _turnRight = false;
     private bool _maxJump;
     private bool _isGrounded;
+    private bool _isOnWall;
     private float _coyoteTimeCounter;
     private float _horizontale;
     private float _currentSpeed;
     private float _jump;
     private float _dashKDTime;
     private LayerMask _layerGround;
+    private LayerMask _layerWall;
 
     private void Start()
     {
@@ -40,7 +43,6 @@ public class PlayerController : MonoBehaviour
         Fall();
         Dash();
         DashKD();
-        Debug.DrawRay(transform.up * 2, -transform.forward);
     }
 
     private void FixedUpdate()
@@ -55,6 +57,11 @@ public class PlayerController : MonoBehaviour
     private void OnCollisionExit(Collision collision)
     {
         OnOutGround(collision);
+    }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        Sliding(collision);
     }
 
     private void Movement()
@@ -73,7 +80,7 @@ public class PlayerController : MonoBehaviour
                 _turnLeft = true;
                 _turnRight = false;
             }
-            else if(move > 0 && !_turnRight)
+            else if (move > 0 && !_turnRight)
             {
                 transform.Rotate(0, 180, 0);
                 _turnRight = true;
@@ -86,28 +93,31 @@ public class PlayerController : MonoBehaviour
 
     private void Jump()
     {
-        if (Input.GetKey(KeyCode.Space) && !_maxJump)
+        if (!_isOnWall)
         {
-            if (_jump <= 0)
+            if (Input.GetKey(KeyCode.Space) && !_maxJump)
+            {
+                if (_jump <= 0)
+                {
+                    _maxJump = true;
+                }
+                _jump -= Time.deltaTime;
+            }
+            if (Input.GetKeyDown(KeyCode.Space) && _coyoteTimeCounter > 0)
+            {
+                animator.SetTrigger("Jump");
+                _isGrounded = false;
+                _jump = JumpForce;
+                isDoubleJumped = true;
+
+            }
+            else if (Input.GetKeyUp(KeyCode.Space) && !_isGrounded)
             {
                 _maxJump = true;
-            }
-            _jump -= Time.deltaTime;
-        }
-        if (Input.GetKeyDown(KeyCode.Space) && _coyoteTimeCounter > 0)
-        {
-            animator.SetTrigger("Jump");
-            _isGrounded = false;
-            _jump = JumpForce;
-            isDoubleJumped = true;
-
-        }
-        else if (Input.GetKeyUp(KeyCode.Space) && !_isGrounded)
-        {
-            _maxJump = true;
-            while (_jump > 0)
-            {
-                _jump -= Time.deltaTime;
+                while (_jump > 0)
+                {
+                    _jump -= Time.deltaTime;
+                }
             }
         }
     }
@@ -118,7 +128,10 @@ public class PlayerController : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                animator.SetTrigger("Jump");
+                if (!_isOnWall)
+                {
+                    animator.SetTrigger("Jump");
+                }
                 _maxJump = false;
                 _jump = JumpForce;
                 isDoubleJumped = true;
@@ -142,7 +155,7 @@ public class PlayerController : MonoBehaviour
 
     private void Fall()
     {
-        if (!_isGrounded)
+        if (!_isGrounded && !_isOnWall)
         {
             _jump -= _gravity * Time.deltaTime;
             if (_coyoteTimeCounter > 0)
@@ -189,7 +202,6 @@ public class PlayerController : MonoBehaviour
         }
         _jump = 0;
         _maxJump = true;
-        Sliding();
     }
 
     private void OnOutGround(Collision collision)
@@ -202,6 +214,7 @@ public class PlayerController : MonoBehaviour
             _dashKDTime = 0;
             isDashed = false;
         }
+        _isOnWall = false;
     }
 
     private void Dash()
@@ -237,15 +250,25 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void Sliding()
+    private void Sliding(Collision collision)
     {
-        if (Physics.Raycast(transform.up * 2, -transform.forward, out RaycastHit hit) || Physics.Raycast(transform.up * 2, transform.forward, out RaycastHit hit1))
+        if (collision.gameObject.layer == _layerWall)
         {
+            if (Input.GetKey(KeyCode.W))
+            {
+                rb.AddForce(0, slidindSpeed * Time.deltaTime, 0);
+            }
+
+            if (Input.GetKey(KeyCode.S))
+            {
+                rb.AddForce(0, -(slidindSpeed * Time.deltaTime), 0);
+            }
+
+            _isOnWall = true;
             isDoubleJumped = false;
             isDashed = false;
         }
     }
-
 
     private void SetOnStart()
     {
@@ -253,5 +276,6 @@ public class PlayerController : MonoBehaviour
         _isGrounded = false;
         isDoubleJumped = true;
         _layerGround = LayerMask.NameToLayer("Ground");
+        _layerWall = LayerMask.NameToLayer("Wall");
     }
 }
