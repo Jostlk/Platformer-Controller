@@ -16,6 +16,8 @@ public class PlayerController : MonoBehaviour
 
     private bool _turnLeft = false;
     private bool _turnRight = false;
+    private bool _isRun = false;
+    private bool _isMove = false;
     private bool _maxJump;
     private bool _isGrounded;
     private bool _isOnWall;
@@ -23,8 +25,8 @@ public class PlayerController : MonoBehaviour
     private float _horizontale;
     private float _currentSpeed;
     public float _jump;
-    public float _jumpTime = 0;
-    public bool SpaceUp = false;
+    private float _jumpTime = 0;
+    private bool SpaceUp = false;
     private LayerMask _layerGround;
     private LayerMask _layerWall;
 
@@ -66,19 +68,28 @@ public class PlayerController : MonoBehaviour
         var move = _horizontale * _currentSpeed;
         if (move == 0)
         {
+            _isMove = false;
+            AudioManager.instance.Stop("Walk");
+            AudioManager.instance.Stop("Run");
             animator.SetBool("Walk", false);
+            animator.SetBool("Shift", false);
         }
         else
         {
+            _isMove = true;
+            if (_isGrounded && !_isRun)
+            {
+                AudioManager.instance.Play("Walk");
+            }
             if (move < 0 && !_turnLeft)
             {
-                transform.Rotate(0, 180, 0);
+                transform.localEulerAngles = new Vector3(0,0,0);
                 _turnLeft = true;
                 _turnRight = false;
             }
             else if (move > 0 && !_turnRight)
             {
-                transform.Rotate(0, 180, 0);
+                transform.localEulerAngles = new Vector3(0, 180, 0);
                 _turnRight = true;
                 _turnLeft = false;
             }
@@ -101,6 +112,7 @@ public class PlayerController : MonoBehaviour
             }
             if (Input.GetKeyDown(KeyCode.Space) && _coyoteTimeCounter > 0)
             {
+                AudioManager.instance.Play("Jump");
                 animator.SetTrigger("Jump");
                 _isGrounded = false;
                 _jump = JumpForce;
@@ -124,6 +136,7 @@ public class PlayerController : MonoBehaviour
             {
                 if (!_isOnWall)
                 {
+                    AudioManager.instance.Play("Jump");
                     animator.SetTrigger("Jump");
                 }
                 _maxJump = false;
@@ -137,13 +150,18 @@ public class PlayerController : MonoBehaviour
 
     private void Sprint()
     {
-        if (Input.GetKeyDown(KeyCode.LeftShift) && _isGrounded)
+        if (Input.GetKey(KeyCode.LeftShift) && _isGrounded && _isMove)
         {
+            _isRun = true;
+            AudioManager.instance.Stop("Walk");
+            AudioManager.instance.Play("Run");
             animator.SetBool("Shift", true);
             _currentSpeed = RunSpeed;
         }
         else if (Input.GetKeyUp(KeyCode.LeftShift))
         {
+            _isRun = false;
+            AudioManager.instance.Stop("Run");
             animator.SetBool("Shift", false);
             _currentSpeed = Speed;
         }
@@ -200,6 +218,7 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.gameObject.layer == _layerGround)
         {
+            AudioManager.instance.Play("Landing");
             animator.SetBool("Grounded", true);
             _isGrounded = true;
         }
@@ -217,6 +236,8 @@ public class PlayerController : MonoBehaviour
             _maxJump = false;
             _isGrounded = false;
         }
+        AudioManager.instance.Stop("Walk");
+        AudioManager.instance.Stop("Run");
         animator.SetBool("Climb", false);
         animator.SetBool("ClimbUp", false);
         animator.SetBool("ClimbDown", false);
@@ -230,7 +251,7 @@ public class PlayerController : MonoBehaviour
             animator.SetBool("Climb", true);
             if (Input.GetKey(KeyCode.W))
             {
-                animator.SetBool("ClimbUp",true);
+                animator.SetBool("ClimbUp", true);
                 animator.SetBool("ClimbDown", false);
                 rb.AddForce(0, slidindSpeed * Time.deltaTime, 0);
             }
