@@ -20,14 +20,12 @@ public class Buster : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         _player.isDoubleJumped = false;
-        _player.isDashed = false;
         isActive = false;     
     }
 
     private void OnTriggerEnter(Collider other)
     {
         _player.isDoubleJumped = false;
-        _player.isDashed = false;
         isActive = false;
     }
 

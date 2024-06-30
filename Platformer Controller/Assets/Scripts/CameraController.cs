@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    public GameObject player;
-
-
-    void LateUpdate()
+    public Transform Player;
+    public float CameraSpeed;
+    void Update()
     {
-        transform.position = new Vector3(transform.position.x, player.transform.position.y + 2, player.transform.position.z);
+        Vector3 newCamPosition = new Vector3(transform.position.x, Player.position.y + 3, Player.position.z);
+        transform.position = Vector3.Lerp(transform.position, newCamPosition, CameraSpeed * Time.deltaTime);
     }
 }

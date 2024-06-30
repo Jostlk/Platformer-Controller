@@ -5,10 +5,7 @@ public class PlayerController : MonoBehaviour
     public float Speed;
     public float RunSpeed;
     public float JumpForce;
-    public float dashKD;
-    public float dashForseXThousand;
     public float slidindSpeed;
-    [HideInInspector] public bool isDashed;
     [HideInInspector] public bool isDoubleJumped;
     [SerializeField] private float _gravity;
     [SerializeField] private float _jumpBufferingDistance;
@@ -25,8 +22,9 @@ public class PlayerController : MonoBehaviour
     private float _coyoteTimeCounter;
     private float _horizontale;
     private float _currentSpeed;
-    private float _jump;
-    private float _dashKDTime;
+    public float _jump;
+    public float _jumpTime = 0;
+    public bool SpaceUp = false;
     private LayerMask _layerGround;
     private LayerMask _layerWall;
 
@@ -41,8 +39,6 @@ public class PlayerController : MonoBehaviour
         DoubleJump();
         Sprint();
         Fall();
-        Dash();
-        DashKD();
     }
 
     private void FixedUpdate()
@@ -101,23 +97,21 @@ public class PlayerController : MonoBehaviour
                 {
                     _maxJump = true;
                 }
-                _jump -= Time.deltaTime;
+                _jumpTime += Time.deltaTime;
             }
             if (Input.GetKeyDown(KeyCode.Space) && _coyoteTimeCounter > 0)
             {
                 animator.SetTrigger("Jump");
                 _isGrounded = false;
                 _jump = JumpForce;
+                _jumpTime = 0.02f;
+                SpaceUp = false;
                 isDoubleJumped = true;
-
             }
             else if (Input.GetKeyUp(KeyCode.Space) && !_isGrounded)
             {
+                SpaceUp = true;
                 _maxJump = true;
-                while (_jump > 0)
-                {
-                    _jump -= Time.deltaTime;
-                }
             }
         }
     }
@@ -135,6 +129,8 @@ public class PlayerController : MonoBehaviour
                 _maxJump = false;
                 _jump = JumpForce;
                 isDoubleJumped = true;
+                _jumpTime = 0.02f;
+                SpaceUp = false;
             }
         }
     }
@@ -157,7 +153,14 @@ public class PlayerController : MonoBehaviour
     {
         if (!_isGrounded && !_isOnWall)
         {
-            _jump -= _gravity * Time.deltaTime;
+            if (_jump >= 0 && SpaceUp)
+            {
+                _jump -= _jumpTime + _gravity * Time.deltaTime;
+            }
+            else
+            {
+                _jump -= _gravity * Time.deltaTime;
+            }
             if (_coyoteTimeCounter > 0)
             {
                 isDoubleJumped = false;
@@ -211,43 +214,8 @@ public class PlayerController : MonoBehaviour
             animator.SetBool("Grounded", false);
             _maxJump = false;
             _isGrounded = false;
-            _dashKDTime = 0;
-            isDashed = false;
         }
         _isOnWall = false;
-    }
-
-    private void Dash()
-    {
-        if (Input.GetKeyDown(KeyCode.LeftControl) && !isDashed)
-        {
-            _horizontale = Input.GetAxis("Horizontal");
-
-            if (_horizontale > 0)
-            {
-                rb.AddForce(Vector3.forward * dashForseXThousand * 1000);
-            }
-            else
-            {
-                rb.AddForce(Vector3.back * dashForseXThousand * 1000);
-            }
-            isDashed = true;
-            if (_isGrounded)
-            {
-                _dashKDTime = dashKD;
-            }
-        }
-    }
-    private void DashKD()
-    {
-        if (_isGrounded && isDashed)
-        {
-            _dashKDTime -= Time.deltaTime;
-            if (_dashKDTime <= 0)
-            {
-                isDashed = false;
-            }
-        }
     }
 
     private void Sliding(Collision collision)
@@ -266,7 +234,6 @@ public class PlayerController : MonoBehaviour
 
             _isOnWall = true;
             isDoubleJumped = false;
-            isDashed = false;
         }
     }
 
