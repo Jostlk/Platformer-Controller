@@ -203,6 +203,8 @@ public class PlayerController : MonoBehaviour
             animator.SetBool("Grounded", true);
             _isGrounded = true;
         }
+        animator.SetBool("ClimbUp", false);
+        animator.SetBool("ClimbDown", false);
         _jump = 0;
         _maxJump = true;
     }
@@ -215,6 +217,9 @@ public class PlayerController : MonoBehaviour
             _maxJump = false;
             _isGrounded = false;
         }
+        animator.SetBool("Climb", false);
+        animator.SetBool("ClimbUp", false);
+        animator.SetBool("ClimbDown", false);
         _isOnWall = false;
     }
 
@@ -222,15 +227,24 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.gameObject.layer == _layerWall)
         {
+            animator.SetBool("Climb", true);
             if (Input.GetKey(KeyCode.W))
             {
+                animator.SetBool("ClimbUp",true);
+                animator.SetBool("ClimbDown", false);
                 rb.AddForce(0, slidindSpeed * Time.deltaTime, 0);
             }
+            else
+                animator.SetBool("ClimbUp", false);
 
             if (Input.GetKey(KeyCode.S))
             {
+                animator.SetBool("ClimbUp", false);
+                animator.SetBool("ClimbDown", true);
                 rb.AddForce(0, -(slidindSpeed * Time.deltaTime), 0);
             }
+            else
+                animator.SetBool("ClimbDown", false);
 
             _isOnWall = true;
             isDoubleJumped = false;
