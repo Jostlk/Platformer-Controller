@@ -982,7 +982,7 @@ MonoBehaviour:
     loop: 1
     source: {fileID: 0}
   - name: Run
-    clip: {fileID: 8300000, guid: 35e806fa0fdf77e47a3235020be266a0, type: 3}
+    clip: {fileID: 8300000, guid: b9e22b71c3ab12b4cac7d74e269d9924, type: 3}
     volume: 0.5
     pitch: 1
     loop: 1
@@ -998,6 +998,12 @@ MonoBehaviour:
     volume: 0.5
     pitch: 1
     loop: 0
+    source: {fileID: 0}
+  - name: Climb
+    clip: {fileID: 8300000, guid: 690cf2aa1872a6a4a91d699dd9884b7b, type: 3}
+    volume: 1
+    pitch: 1
+    loop: 1
     source: {fileID: 0}
 --- !u!4 &1037273736
 Transform:
