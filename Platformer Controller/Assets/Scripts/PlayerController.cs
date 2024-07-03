@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float _fallGravity;
 
     public Rigidbody rb;
+    public CapsuleCollider capsuleCollider;
     public Animator animator;
 
     private bool _turnLeft = false;
@@ -21,10 +22,11 @@ public class PlayerController : MonoBehaviour
     private bool _maxJump;
     private bool _isGrounded;
     private bool _isOnWall;
+    private bool _standUp = false;
     private float _coyoteTimeCounter;
     private float _horizontale;
     private float _currentSpeed;
-    public float _jump;
+    private float _jump;
     private float _jumpTime = 0;
     private bool SpaceUp = false;
     private LayerMask _layerGround;
@@ -37,6 +39,8 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        Debug.DrawRay(transform.position + Vector3.up + Vector3.back * 0.5f, Vector3.up * 3);
+        Sit();
         Jump();
         DoubleJump();
         Sprint();
@@ -83,7 +87,7 @@ public class PlayerController : MonoBehaviour
             }
             if (move < 0 && !_turnLeft)
             {
-                transform.localEulerAngles = new Vector3(0,0,0);
+                transform.localEulerAngles = new Vector3(0, 0, 0);
                 _turnLeft = true;
                 _turnRight = false;
             }
@@ -96,6 +100,27 @@ public class PlayerController : MonoBehaviour
             animator.SetBool("Walk", true);
         }
         rb.velocity = new Vector3(0, _jump, move);
+    }
+
+    private void Sit()
+    {
+        if (Input.GetKeyDown(KeyCode.LeftControl) && _isGrounded)
+        {
+            StopRun();
+            _standUp = false;
+            animator.SetBool("Sit", true);
+            capsuleCollider.center = new Vector3(0, 1.4f, 0);
+            capsuleCollider.radius = 1.4f;
+            capsuleCollider.height = 2.8f;
+        }
+        else if (Input.GetKeyUp(KeyCode.LeftControl) && _isGrounded)
+        {
+            _standUp = true;
+        }
+        else if (_standUp)
+        {
+            TryStandUp();
+        }
     }
 
     private void Jump()
@@ -112,6 +137,7 @@ public class PlayerController : MonoBehaviour
             }
             if (Input.GetKeyDown(KeyCode.Space) && _coyoteTimeCounter > 0)
             {
+                ResetColider();
                 AudioManager.instance.Play("Jump");
                 animator.SetTrigger("Jump");
                 _isGrounded = false;
@@ -150,7 +176,7 @@ public class PlayerController : MonoBehaviour
 
     private void Sprint()
     {
-        if (Input.GetKey(KeyCode.LeftShift) && _isGrounded && _isMove)
+        if (Input.GetKey(KeyCode.LeftShift) && _isGrounded && _isMove && !animator.GetBool("Sit"))
         {
             _isRun = true;
             AudioManager.instance.Stop("Walk");
@@ -160,10 +186,7 @@ public class PlayerController : MonoBehaviour
         }
         else if (Input.GetKeyUp(KeyCode.LeftShift))
         {
-            _isRun = false;
-            AudioManager.instance.Stop("Run");
-            animator.SetBool("Shift", false);
-            _currentSpeed = Speed;
+            StopRun();
         }
     }
 
@@ -188,7 +211,7 @@ public class PlayerController : MonoBehaviour
         else
         {
             _jump = 0;
-            _coyoteTimeCounter = 0.4f;
+            _coyoteTimeCounter = 0.3f;
         }
 
         if (_maxJump)
@@ -218,6 +241,7 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.gameObject.layer == _layerGround)
         {
+            ResetColider();
             AudioManager.instance.Play("Landing");
             animator.SetBool("Grounded", true);
             _isGrounded = true;
@@ -232,6 +256,7 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.gameObject.layer == _layerGround)
         {
+            ResetColider();
             animator.SetBool("Grounded", false);
             _maxJump = false;
             _isGrounded = false;
@@ -248,6 +273,7 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.gameObject.layer == _layerWall)
         {
+            capsuleCollider.radius = 0.6f;
             animator.SetBool("Climb", true);
             if (Input.GetKey(KeyCode.W))
             {
@@ -272,6 +298,33 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+
+    private void TryStandUp()
+    {
+        var BackRay = Physics.Raycast(transform.position + Vector3.up + Vector3.back, Vector3.up, 3);
+        var FrontRay = Physics.Raycast(transform.position + Vector3.up + Vector3.forward, Vector3.up, 3);
+        if (!BackRay && !FrontRay)
+        {
+            ResetColider();
+            _standUp = false;
+        }
+    }
+
+    private void ResetColider()
+    {
+        animator.SetBool("Sit", false);
+        capsuleCollider.center = new Vector3(0, 1.8f, 0);
+        capsuleCollider.radius = 1;
+        capsuleCollider.height = 3.57f;
+    }
+
+    private void StopRun()
+    {
+        _isRun = false;
+        AudioManager.instance.Stop("Run");
+        animator.SetBool("Shift", false);
+        _currentSpeed = Speed;
+    }
     private void SetOnStart()
     {
         _currentSpeed = Speed;
