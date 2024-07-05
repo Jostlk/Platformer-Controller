@@ -5,8 +5,8 @@ public class PlayerController : MonoBehaviour
     public float Speed;
     public float RunSpeed;
     public float JumpForce;
-    public float slidindSpeed;
     [HideInInspector] public bool isDoubleJumped;
+    [HideInInspector] public bool _isGrounded;
     [SerializeField] private float _gravity;
     [SerializeField] private float _jumpBufferingDistance;
     [SerializeField] private float _fallGravity;
@@ -20,17 +20,16 @@ public class PlayerController : MonoBehaviour
     private bool _isRun = false;
     private bool _isMove = false;
     private bool _maxJump;
-    private bool _isGrounded;
-    private bool _isOnWall;
     private bool _standUp = false;
     private float _coyoteTimeCounter;
     private float _horizontale;
     private float _currentSpeed;
     private float _jump;
     private float _jumpTime = 0;
+    private float _fallTime = 0;
+    private bool _stopActive = false;
     private bool SpaceUp = false;
     private LayerMask _layerGround;
-    private LayerMask _layerWall;
 
     private void Start()
     {
@@ -39,18 +38,24 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        Debug.DrawRay(transform.position + Vector3.up + Vector3.back * 0.5f, Vector3.up * 3);
-        Sit();
-        Jump();
-        DoubleJump();
-        Sprint();
-        Fall();
+        if (!_stopActive)
+        {
+            Jump();
+            DoubleJump();
+            Debug.DrawRay(transform.position + Vector3.up + Vector3.back * 0.5f, Vector3.up * 3);
+            Sit();
+            Sprint();
+            Fall();
+        }
     }
 
     private void FixedUpdate()
     {
-        JumpBuffering();
-        Movement();
+        if (!_stopActive)
+        {
+            JumpBuffering();
+            Movement();
+        }
     }
     private void OnCollisionEnter(Collision collision)
     {
@@ -61,17 +66,13 @@ public class PlayerController : MonoBehaviour
         OnOutGround(collision);
     }
 
-    private void OnCollisionStay(Collision collision)
-    {
-        Sliding(collision);
-    }
-
     private void Movement()
     {
         _horizontale = Input.GetAxis("Horizontal");
         var move = _horizontale * _currentSpeed;
         if (move == 0)
         {
+            _isRun = false;
             _isMove = false;
             AudioManager.instance.Stop("Walk");
             AudioManager.instance.Stop("Run");
@@ -87,13 +88,13 @@ public class PlayerController : MonoBehaviour
             }
             if (move < 0 && !_turnLeft)
             {
-                transform.localEulerAngles = new Vector3(0, 0, 0);
+                transform.localEulerAngles = new Vector3(0, 180, 0);
                 _turnLeft = true;
                 _turnRight = false;
             }
             else if (move > 0 && !_turnRight)
             {
-                transform.localEulerAngles = new Vector3(0, 180, 0);
+                transform.localEulerAngles = new Vector3(0, 0, 0);
                 _turnRight = true;
                 _turnLeft = false;
             }
@@ -106,7 +107,15 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.LeftControl) && _isGrounded)
         {
-            StopRun();
+            if (_isRun)
+            {
+                AudioManager.instance.Play("RunningSlide");
+                AudioManager.instance.Stop("Run");
+                if (!IsInvoking())
+                {
+                    Invoke("StopRun", 1);
+                }
+            }
             _standUp = false;
             animator.SetBool("Sit", true);
             capsuleCollider.center = new Vector3(0, 1.4f, 0);
@@ -125,7 +134,7 @@ public class PlayerController : MonoBehaviour
 
     private void Jump()
     {
-        if (!_isOnWall)
+        if (!TriggerAnimation._OnTrigger)
         {
             if (Input.GetKey(KeyCode.Space) && !_maxJump)
             {
@@ -134,6 +143,7 @@ public class PlayerController : MonoBehaviour
                     _maxJump = true;
                 }
                 _jumpTime += Time.deltaTime;
+                _fallTime = 0;
             }
             if (Input.GetKeyDown(KeyCode.Space) && _coyoteTimeCounter > 0)
             {
@@ -145,6 +155,7 @@ public class PlayerController : MonoBehaviour
                 _jumpTime = 0.02f;
                 SpaceUp = false;
                 isDoubleJumped = true;
+                _stopActive = false;
             }
             else if (Input.GetKeyUp(KeyCode.Space) && !_isGrounded)
             {
@@ -156,15 +167,12 @@ public class PlayerController : MonoBehaviour
 
     private void DoubleJump()
     {
-        if (!_isGrounded && !isDoubleJumped)
+        if (!_isGrounded && !isDoubleJumped && !TriggerAnimation._OnTrigger)
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                if (!_isOnWall)
-                {
-                    AudioManager.instance.Play("Jump");
-                    animator.SetTrigger("Jump");
-                }
+                AudioManager.instance.Play("Jump");
+                animator.SetTrigger("Jump");
                 _maxJump = false;
                 _jump = JumpForce;
                 isDoubleJumped = true;
@@ -192,8 +200,10 @@ public class PlayerController : MonoBehaviour
 
     private void Fall()
     {
-        if (!_isGrounded && !_isOnWall)
+        Debug.Log(_jump);
+        if (!_isGrounded)
         {
+            VeryFall();
             if (_jump >= 0 && SpaceUp)
             {
                 _jump -= _jumpTime + _gravity * Time.deltaTime;
@@ -210,6 +220,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
+            _fallTime = 0;
             _jump = 0;
             _coyoteTimeCounter = 0.3f;
         }
@@ -220,7 +231,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            _gravity = 9.81f;
+            _gravity = 15f;
         }
     }
     private void JumpBuffering()
@@ -241,6 +252,14 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.gameObject.layer == _layerGround)
         {
+            if (animator.GetBool("VeryFall"))
+            {
+                _stopActive = true;
+                if (!IsInvoking())
+                {
+                    Invoke("PlayActive", 1.5f);
+                }
+            }
             ResetColider();
             AudioManager.instance.Play("Landing");
             animator.SetBool("Grounded", true);
@@ -266,38 +285,7 @@ public class PlayerController : MonoBehaviour
         animator.SetBool("Climb", false);
         animator.SetBool("ClimbUp", false);
         animator.SetBool("ClimbDown", false);
-        _isOnWall = false;
     }
-
-    private void Sliding(Collision collision)
-    {
-        if (collision.gameObject.layer == _layerWall)
-        {
-            capsuleCollider.radius = 0.6f;
-            animator.SetBool("Climb", true);
-            if (Input.GetKey(KeyCode.W))
-            {
-                animator.SetBool("ClimbUp", true);
-                animator.SetBool("ClimbDown", false);
-                rb.AddForce(0, slidindSpeed * Time.deltaTime, 0);
-            }
-            else
-                animator.SetBool("ClimbUp", false);
-
-            if (Input.GetKey(KeyCode.S))
-            {
-                animator.SetBool("ClimbUp", false);
-                animator.SetBool("ClimbDown", true);
-                rb.AddForce(0, -(slidindSpeed * Time.deltaTime), 0);
-            }
-            else
-                animator.SetBool("ClimbDown", false);
-
-            _isOnWall = true;
-            isDoubleJumped = false;
-        }
-    }
-
 
     private void TryStandUp()
     {
@@ -308,6 +296,23 @@ public class PlayerController : MonoBehaviour
             ResetColider();
             _standUp = false;
         }
+    }
+
+    private void VeryFall()
+    {
+        _fallTime += Time.deltaTime;
+        if (_fallTime >= 1)
+        {
+            animator.SetBool("VeryFall", true);
+        }
+        else
+            animator.SetBool("VeryFall", false);
+    }
+    private void PlayActive()
+    {
+        _fallTime = 0;
+        rb.AddForce(0, 40, 0, ForceMode.VelocityChange);
+        _stopActive = false;
     }
 
     private void ResetColider()
@@ -331,6 +336,5 @@ public class PlayerController : MonoBehaviour
         _isGrounded = false;
         isDoubleJumped = true;
         _layerGround = LayerMask.NameToLayer("Ground");
-        _layerWall = LayerMask.NameToLayer("Wall");
     }
 }

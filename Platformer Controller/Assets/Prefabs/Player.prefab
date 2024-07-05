@@ -650,7 +650,6 @@ MonoBehaviour:
   _jumpBufferingDistance: 0.8
   _fallGravity: 15
   rb: {fileID: 1784078298221955434}
-  capsuleCollider: {fileID: 1784078298221955428}
   animator: {fileID: 1442057961983740417}
 --- !u!136 &1784078298221955428
 CapsuleCollider:
