@@ -26,7 +26,7 @@ public class TriggerAnimation : MonoBehaviour
             }
             else
                 _isToWallClimb = false;
-            if ((Input.GetKey(KeyCode.Space) || Input.GetKeyDown(KeyCode.Space)) && _isFirstAction && IsFacingCorrectDirection())
+            if (Input.GetKey(KeyCode.Space) && _isFirstAction && IsFacingCorrectDirection())
             {
                 playerController.enabled = false;
                 capsuleCollider.enabled = false;
@@ -36,14 +36,30 @@ public class TriggerAnimation : MonoBehaviour
                     animator.SetTrigger("ToWallClimb");
                     playerController.transform.position = new Vector3(playerController.transform.position.x,
                     playerController.transform.position.y, transform.position.z);
+                    if (!IsInvoking())
+                    {
+                        Invoke("OnActive", 3.6f);
+                    }
                 }
                 else if (SprintToWallClimb && !_isToWallClimb)
+                {
                     animator.SetTrigger("SprintToWallClimb");
+                    if (!IsInvoking())
+                    {
+                        Invoke("OnActive", 1.5f);
+                    }
+                }
 
             }
             else
                 _OnTrigger = false;
         }
+    }
+    private void OnActive()
+    {
+        playerController.enabled = true;
+        capsuleCollider.enabled = true;
+        _isFirstAction = true;
     }
     private bool IsFacingCorrectDirection()
     {
