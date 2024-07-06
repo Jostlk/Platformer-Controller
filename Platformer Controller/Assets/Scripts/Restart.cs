@@ -3,13 +3,10 @@ using UnityEngine.SceneManagement;
 
 public class Restart : MonoBehaviour
 {
-   
-    // Update is called once per frame
-    void Update()
+    public GameObject spawnPoint;
+
+    private void OnTriggerEnter(Collider other)
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        }
+        other.gameObject.transform.position = spawnPoint.transform.position;
     }
 }

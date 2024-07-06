@@ -27,13 +27,15 @@ public class AudioManager : MonoBehaviour
     public void Play(string sound)
     {
         Sound s = Array.Find(sounds, item => item.name == sound);
-        if (!s.source.isPlaying)
-            s.source.Play();
+        //if (!s.source.isPlaying)
+        {
+            //s.source.Play();
+        }
     }
     public void Stop(string sound)
     {
         Sound s = Array.Find(sounds, item => item.name == sound);
-        s.source.Stop();
+        //s.source.Stop();
     }
 
 }

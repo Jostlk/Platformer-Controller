@@ -74,8 +74,8 @@ public class PlayerController : MonoBehaviour
         {
             _isRun = false;
             _isMove = false;
-            AudioManager.instance.Stop("Walk");
-            AudioManager.instance.Stop("Run");
+            //AudioManager.instance.Stop("Walk");
+            //AudioManager.instance.Stop("Run");
             animator.SetBool("Walk", false);
             animator.SetBool("Shift", false);
         }
@@ -84,7 +84,7 @@ public class PlayerController : MonoBehaviour
             _isMove = true;
             if (_isGrounded && !_isRun)
             {
-                AudioManager.instance.Play("Walk");
+                //AudioManager.instance.Play("Walk");
             }
             if (move < 0 && !_turnLeft)
             {
@@ -109,8 +109,8 @@ public class PlayerController : MonoBehaviour
         {
             if (_isRun)
             {
-                AudioManager.instance.Play("RunningSlide");
-                AudioManager.instance.Stop("Run");
+                //AudioManager.instance.Play("RunningSlide");
+                //AudioManager.instance.Stop("Run");
                 if (!IsInvoking())
                 {
                     Invoke("StopRun", 1);
@@ -148,7 +148,7 @@ public class PlayerController : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Space) && _coyoteTimeCounter > 0)
             {
                 ResetColider();
-                AudioManager.instance.Play("Jump");
+                //AudioManager.instance.Play("Jump");
                 animator.SetTrigger("Jump");
                 _isGrounded = false;
                 _jump = JumpForce;
@@ -171,7 +171,7 @@ public class PlayerController : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                AudioManager.instance.Play("Jump");
+                //*AudioManager*.instance.Play("Jump");
                 animator.SetTrigger("Jump");
                 _maxJump = false;
                 _jump = JumpForce;
@@ -200,7 +200,7 @@ public class PlayerController : MonoBehaviour
 
     private void Fall()
     {
-        Debug.Log(_jump);
+        //Debug.Log(_jump);
         if (!_isGrounded)
         {
             VeryFall();
@@ -231,7 +231,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            _gravity = 15f;
+            _gravity = 9.8f;
         }
     }
     private void JumpBuffering()
@@ -243,7 +243,7 @@ public class PlayerController : MonoBehaviour
                 _coyoteTimeCounter = 0.2f;
                 _maxJump = false;
                 isDoubleJumped = false;
-                _gravity = 9.81f;
+                _gravity = 9.8f;
             }
         }
     }
@@ -261,7 +261,7 @@ public class PlayerController : MonoBehaviour
                 }
             }
             ResetColider();
-            AudioManager.instance.Play("Landing");
+            //*AudioManager*.instance.Play("Landing");
             animator.SetBool("Grounded", true);
             _isGrounded = true;
         }
@@ -280,8 +280,8 @@ public class PlayerController : MonoBehaviour
             _maxJump = false;
             _isGrounded = false;
         }
-        AudioManager.instance.Stop("Walk");
-        AudioManager.instance.Stop("Run");
+        //AudioManager.instance.Stop("Walk");
+        //AudioManager.instance.Stop("Run");
         animator.SetBool("Climb", false);
         animator.SetBool("ClimbUp", false);
         animator.SetBool("ClimbDown", false);
@@ -326,7 +326,7 @@ public class PlayerController : MonoBehaviour
     private void StopRun()
     {
         _isRun = false;
-        AudioManager.instance.Stop("Run");
+        //AudioManager.instance.Stop("Run");
         animator.SetBool("Shift", false);
         _currentSpeed = Speed;
     }
